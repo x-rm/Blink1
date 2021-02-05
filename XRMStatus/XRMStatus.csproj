@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Blink1\Blink1.csproj" />
+    <ProjectReference Include="..\StatusCakeApi\StatusCakeApi.csproj" />
+  </ItemGroup>
+
+</Project>
