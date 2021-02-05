@@ -33,6 +33,7 @@ namespace XRMStatus
 				CertificateExpirationDays = Convert.ToInt32(ConfigurationManager.AppSettings["CertificateExpirationDays"])
 			};
 
+			Log($"START. Username: {settings.ApiUsername}");
 			
 			_statusMonitor = new StatusMonitor(settings);
 
@@ -59,6 +60,7 @@ namespace XRMStatus
 		protected override void OnStop()
 		{
 			//_statusMonitor.Close();
+			Log("STOP");
 		}
 
 		public void Log(string Message)
@@ -72,7 +74,6 @@ namespace XRMStatus
 
 			string filepath = AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\ServiceLog_" + DateTime.Now.Date.ToShortDateString().Replace('/', '_') + ".txt";
 
-			
 			using (StreamWriter sw = File.AppendText(filepath))
 			{
 				sw.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "|" + Message);

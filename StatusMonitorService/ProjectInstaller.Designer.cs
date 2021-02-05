@@ -41,6 +41,7 @@
 			// 
 			this.serviceInstaller1.DisplayName = "Status Monitor";
 			this.serviceInstaller1.ServiceName = "StatusMonitor";
+			this.serviceInstaller1.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.serviceInstaller1_AfterInstall);
 			// 
 			// ProjectInstaller
 			// 
