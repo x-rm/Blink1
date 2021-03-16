@@ -355,3 +355,5 @@ src/_OctopusDeploy/published-app/
 src/WebSite/FMS.Web/#\{LogFolder\}/
 src/WebAPI/FMS.Resources.API/#\{LogFolder\}/
 src/WebAPI/FMS.MaintenanceRequest.API/#\{LogFolder\}/
+
+*.InstallLog

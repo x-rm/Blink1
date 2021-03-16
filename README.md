@@ -9,9 +9,6 @@ Configure username and API key in App.config before installing the Windows Servi
 Check and then run install.bat (from the StatusMonitorService folder) from an elevated **Developer Command Prompt**.
 
 
-
-
-
 ## Original notes from the Blink1 library:
 
 

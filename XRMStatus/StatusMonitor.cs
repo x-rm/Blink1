@@ -60,7 +60,7 @@ namespace XRMStatus
 				Log("SSL fails: " + numberOfSslFails);
 				if (numberOfSslFails > 0)
 				{
-					color = ColorHelper.ChangeBrightness(Color.DarkOrange, -0.7F);
+					color = ColorHelper.ChangeBrightness(Color.DarkOrange, -0.6F);
 				}
 			}
 			else
@@ -78,10 +78,9 @@ namespace XRMStatus
 			if (lastColor != color)
 			{
 				Log($"Changing LED color to: {color.R},{color.G},{color.B}");
+				_blink1.SetColor(color.R, color.G, color.B);
 			}
-			
-			_blink1.SetColor(color.R, color.G, color.B);
-			
+
 			_blink1.Close(false);
 			_blink1 = null;
 		}
