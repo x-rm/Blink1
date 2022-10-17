@@ -28,12 +28,11 @@ namespace XRMStatus
 		{
 			var settings = new StatusMonitorSettings
 			{
-				ApiUsername = ConfigurationManager.AppSettings["ApiUsername"].ToString(),
-				ApiPassword = ConfigurationManager.AppSettings["ApiPassword"].ToString(),
+				ApiKey = ConfigurationManager.AppSettings["ApiKey"].ToString(),
 				CertificateExpirationDays = Convert.ToInt32(ConfigurationManager.AppSettings["CertificateExpirationDays"])
 			};
 
-			Log($"START. Username: {settings.ApiUsername}");
+			Log($"START. ApiKey: {settings.ApiKey}");
 			
 			_statusMonitor = new StatusMonitor(settings);
 

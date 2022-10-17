@@ -10,8 +10,7 @@ namespace StatusMonitorConsole
 		{
 			var settings = new StatusMonitorSettings
 			{
-				ApiUsername = ConfigurationManager.AppSettings["ApiUsername"].ToString(),
-				ApiPassword = ConfigurationManager.AppSettings["ApiPassword"].ToString(),
+				ApiKey = ConfigurationManager.AppSettings["ApiKey"].ToString(),
 				CertificateExpirationDays = Convert.ToInt32(ConfigurationManager.AppSettings["CertificateExpirationDays"])
 			};
 			

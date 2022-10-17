@@ -6,8 +6,7 @@ namespace XRMStatus
 {
 	public class StatusMonitorSettings
 	{
-		public string ApiUsername { get; set; }
-		public string ApiPassword { get; set; }
+		public string ApiKey { get; set; }
 
 		public int CertificateExpirationDays { get; set; }
 	}

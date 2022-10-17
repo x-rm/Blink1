@@ -4,34 +4,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RestSharp.Authenticators;
 using RestSharp.Serializers.NewtonsoftJson;
+using StatusCakeApi.Models;
 
 namespace StatusCakeApi
 {
 
     public class StatusCakeApiClient	
     {
-		const string BaseUrl = "https://app.statuscake.com/API/";
+		const string BaseUrl = "https://api.statuscake.com/v1/";
 		readonly IRestClient client;
 
-		public StatusCakeApiClient(string username, string apiKey)
+		public StatusCakeApiClient(string apiKey)
 		{
 			client = new RestClient(BaseUrl);
-			client.Authenticator = new StatusCakeAuthenticator(username, apiKey);
+			client.Authenticator = new JwtAuthenticator(apiKey);
 			client.UseNewtonsoftJson();
 		}
 
-		public List<TestDto> GetTests()
+		public UptimeResults GetTests()
 		{
-			var request = new RestRequest("Tests");
-			var tests = client.Get<List<TestDto>>(request);
+			var request = new RestRequest("uptime");
+			var tests = client.Get<UptimeResults>(request);
 			return tests.Data;
 		}
 
-		public List<SslDto> GetSSLTests()
+		public SslTestResults GetSSLTests()
 		{
-			var request = new RestRequest("SSL");
-			var tests = client.Get<List<SslDto>>(request);
+			var request = new RestRequest("ssl");
+			var tests = client.Get<SslTestResults>(request);
 			return tests.Data;
 		}
 		

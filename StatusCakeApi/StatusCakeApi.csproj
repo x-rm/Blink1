@@ -51,14 +51,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SslDto.cs" />
+    <Compile Include="Models\MetaData.cs" />
+    <Compile Include="Models\SslTest.cs" />
+    <Compile Include="Models\SslTestResults.cs" />
     <Compile Include="StatusCakeApi.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StatusCakeAuthenticator.cs" />
-    <Compile Include="TestDto.cs" />
+    <Compile Include="Models\UptimeTestResult.cs" />
+    <Compile Include="Models\UptimeResults.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

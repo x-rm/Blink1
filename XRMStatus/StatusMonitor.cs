@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Threading;
+using StatusCakeApi.Models;
 using ThingM.Blink1;
 
 namespace XRMStatus
@@ -19,7 +20,7 @@ namespace XRMStatus
 		public StatusMonitor(StatusMonitorSettings settings)
 		{
 			_settings = settings;
-			_api = new StatusCakeApiClient(settings.ApiUsername, settings.ApiPassword);
+			_api = new StatusCakeApiClient(settings.ApiKey);
 		}
 
 		//public void StartupLights()
@@ -55,12 +56,19 @@ namespace XRMStatus
 				Log("No failed tests");
 				
 				// If there are no error conditions, then check SSL expirations:
-				var numberOfSslFails = CheckSSLExpirations(_settings.CertificateExpirationDays);
-				
-				Log("SSL fails: " + numberOfSslFails);
-				if (numberOfSslFails > 0)
+				try
 				{
-					color = ColorHelper.ChangeBrightness(Color.DarkOrange, -0.6F);
+					var numberOfSslFails = CheckSSLExpirations(_settings.CertificateExpirationDays);
+
+					Log("SSL fails: " + numberOfSslFails);
+					if (numberOfSslFails > 0)
+					{
+						color = ColorHelper.ChangeBrightness(Color.DarkOrange, -0.6F);
+					}
+				}
+				catch (Exception ex)
+				{
+					color = ColorHelper.ChangeBrightness(Color.DarkOrange, -0.9F);
 				}
 			}
 			else
@@ -93,13 +101,15 @@ namespace XRMStatus
 
 		private int CheckSSLExpirations(int days)
 		{
-			List<SslDto> tests = _api.GetSSLTests();
-			
+			var results = _api.GetSSLTests();
+
+			if (results.Data.Count == 0) throw new ApplicationException("No SSL results were returned");
+
 			int numberOfFailedTests = 0;
 
-			foreach (var test in tests)
+			foreach (var test in results.Data)
 			{
-				if (test.ValidUntilUtc <= DateTime.UtcNow.AddDays(days)) numberOfFailedTests++;
+				if (test.ValidUntil <= DateTime.UtcNow.AddDays(days)) numberOfFailedTests++;
 			}
 
 			return numberOfFailedTests;
@@ -108,11 +118,13 @@ namespace XRMStatus
 		private int CheckAllStatusCakeTestsOK()
 		{
 			
-			List<TestDto> tests = _api.GetTests();
+			UptimeResults uptimeResult = _api.GetTests();
 
 			int numberOfFailedTests = 0;
 
-			foreach (var test in tests)
+			if (uptimeResult.Data.Count == 0) throw new ApplicationException("No tests were returned by the API");
+
+			foreach (var test in uptimeResult.Data)
 			{
 				if (test.Status.ToLower() != "up") numberOfFailedTests++;
 			}
