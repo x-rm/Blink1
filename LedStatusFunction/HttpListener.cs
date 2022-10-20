@@ -32,25 +32,23 @@ namespace LedStatusFunction
 	        {
 		        logger.LogInformation("Returning non-cached value");
 
-		        var username = Environment.GetEnvironmentVariable("StatusCakeUsername");
-		        var password = Environment.GetEnvironmentVariable("StatusCakePassword");
+		        var apiKey = Environment.GetEnvironmentVariable("StatusCakeApiKey");
 
-		        if (String.IsNullOrEmpty(username) || String.IsNullOrEmpty(password))
+		        if (String.IsNullOrEmpty(apiKey))
 		        {
 			        var badResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
 			        badResponse.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-			        badResponse.WriteString(
-				        "Error: StatusCake username and password environment variables were not set");
+			        badResponse.WriteString("Error: StatusCakeApiKey environment variable was not set");
 			        return badResponse;
 		        }
 
-		        StatusCakeApiClient _api = new StatusCakeApiClient(username, password);
+		        StatusCakeApiClient _api = new StatusCakeApiClient(apiKey);
 
-		        int failedTests = CheckAllStatusCakeTestsOK(_api);
-		        cachedCount = failedTests;
+		        var failedTests = _api.GetFailedTests();
+		        cachedCount = failedTests.Data.Count;
 		        lastFetch = DateTime.Now;
 
-		        var responseData = GetResponseData(req, failedTests, "new value");
+		        var responseData = GetResponseData(req, cachedCount, "new value");
 		        return responseData;
 	        }
 	        catch (Exception ex)
@@ -70,18 +68,5 @@ namespace LedStatusFunction
 	        return response;
         }
 
-        private static int CheckAllStatusCakeTestsOK(StatusCakeApiClient api)
-        {
-	        List<UptimeTestResult> tests = api.GetTests();
-
-	        int numberOfFailedTests = 0;
-
-	        foreach (var test in tests)
-	        {
-		        if (test.Status.ToLower() != "up") numberOfFailedTests++;
-	        }
-
-	        return numberOfFailedTests;
-        }
     }
 }

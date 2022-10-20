@@ -23,9 +23,11 @@ namespace StatusCakeApi
 			client.UseNewtonsoftJson();
 		}
 
-		public UptimeResults GetTests()
+		public UptimeResults GetFailedTests()
 		{
 			var request = new RestRequest("uptime");
+			request.AddParameter("limit", 100, ParameterType.QueryString);
+			request.AddParameter("status", "down", ParameterType.QueryString);
 			var tests = client.Get<UptimeResults>(request);
 			return tests.Data;
 		}

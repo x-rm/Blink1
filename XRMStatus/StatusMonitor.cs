@@ -117,19 +117,9 @@ namespace XRMStatus
 		
 		private int CheckAllStatusCakeTestsOK()
 		{
-			
-			UptimeResults uptimeResult = _api.GetTests();
-
-			int numberOfFailedTests = 0;
-
-			if (uptimeResult.Data.Count == 0) throw new ApplicationException("No tests were returned by the API");
-
-			foreach (var test in uptimeResult.Data)
-			{
-				if (test.Status.ToLower() != "up") numberOfFailedTests++;
-			}
-
-			return numberOfFailedTests;
+			UptimeResults failedTests = _api.GetFailedTests();
+			 
+			return failedTests.Data.Count;
 		}
 		
 		public void Log(string message)
