@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 namespace StatusMonitorService
 {
 	[RunInstaller(true)]
-	public partial class ProjectInstaller : System.Configuration.Install.Installer
+	public partial class ServiceInstaller : System.Configuration.Install.Installer
 	{
 		private readonly ServiceProcessInstaller processInstaller;
 		private readonly System.ServiceProcess.ServiceInstaller serviceInstaller;
 		
-		public ProjectInstaller()
+		public ServiceInstaller()
 		{
 			InitializeComponent();
 			
@@ -25,11 +25,10 @@ namespace StatusMonitorService
 
 		private void serviceInstaller1_AfterInstall(object sender, InstallEventArgs e)
 		{
-			// Service will run under system account
-			processInstaller.Account = ServiceAccount.LocalSystem;
-
-			// Service will have Automatic Start Type
-			serviceInstaller.StartType = ServiceStartMode.Automatic;
+			using (ServiceController sc = new ServiceController("StatusMonitor"))
+			{
+				sc.Start();
+			}
 		}
 	}
 }

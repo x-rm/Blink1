@@ -9,5 +9,3 @@ xcopy /exclude:excludes.txt /Y .\bin\Debug\*.*  "C:\Program Files\Status Monitor
 installutil /u "C:\program files\Status Monitor\StatusMonitorService.exe"
 
 installutil "C:\program files\Status Monitor\StatusMonitorService.exe"
-
-net start "StatusMonitor"

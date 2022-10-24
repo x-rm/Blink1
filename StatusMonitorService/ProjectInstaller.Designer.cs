@@ -1,6 +1,6 @@
 ﻿namespace StatusMonitorService
 {
-	partial class ProjectInstaller
+	partial class ServiceInstaller
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -41,9 +41,10 @@
 			// 
 			this.serviceInstaller1.DisplayName = "Status Monitor";
 			this.serviceInstaller1.ServiceName = "StatusMonitor";
+			this.serviceInstaller1.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
 			this.serviceInstaller1.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.serviceInstaller1_AfterInstall);
 			// 
-			// ProjectInstaller
+			// ServiceInstaller
 			// 
 			this.Installers.AddRange(new System.Configuration.Install.Installer[] {
             this.serviceProcessInstaller1,

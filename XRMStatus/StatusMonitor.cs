@@ -68,7 +68,7 @@ namespace XRMStatus
 				}
 				catch (Exception ex)
 				{
-					color = ColorHelper.ChangeBrightness(Color.DarkOrange, -0.9F);
+					color = ColorHelper.ChangeBrightness(Color.BlueViolet, -0.9F);
 				}
 			}
 			else
