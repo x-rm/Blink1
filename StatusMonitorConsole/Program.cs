@@ -1,6 +1,6 @@
 ﻿using System;
-using XRMStatus;
 using System.Configuration;
+using XRMStatus;
 
 namespace StatusMonitorConsole
 {

@@ -6,6 +6,8 @@ using System.IO;
 using System.Threading;
 using StatusCakeApi.Models;
 using ThingM.Blink1;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace XRMStatus
 {
@@ -80,6 +82,17 @@ namespace XRMStatus
 				if (brightness >= MAX_BRIGHTNESS) brightness = MAX_BRIGHTNESS;
 
 				color = Color.FromArgb(brightness, 0, 0);
+
+				if (!IsMFHOK().Result)
+				{
+					_blink1.Blink(8, 500, 200, 128, 0, 0);
+
+					_blink1.SetColor(128, 0, 0);
+
+				}
+
+
+
 			}
 
 			// Don't update LED unless color has changed.
@@ -98,6 +111,16 @@ namespace XRMStatus
 			_blink1.Close();
 		}
 
+		private async Task<bool> IsMFHOK()
+		{
+			var url= "https://status.myfleethub.co.uk/api/Status/IsMFHok";
+
+			var httpClient = new HttpClient();
+			var response = await httpClient.GetAsync(url);
+
+			return response.IsSuccessStatusCode;
+			
+		}
 
 		private int CheckSSLExpirations(int days)
 		{

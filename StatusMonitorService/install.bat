@@ -6,6 +6,6 @@ net stop "StatusMonitor"
 xcopy .\bin\Debug\StatusMonitorService.exe.config  "C:\program files\Status Monitor"
 xcopy /exclude:excludes.txt /Y .\bin\Debug\*.*  "C:\Program Files\Status Monitor" 
 
-installutil /u "C:\program files\Status Monitor\StatusMonitorService.exe"
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe /u "C:\program files\Status Monitor\StatusMonitorService.exe"
 
-installutil "C:\program files\Status Monitor\StatusMonitorService.exe"
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe "C:\program files\Status Monitor\StatusMonitorService.exe"
