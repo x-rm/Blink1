@@ -105,10 +105,9 @@ namespace XRMStatus
                     double secondsUntil = SecondsUntil(upcoming.First().StartDateTime);
 
                     Log($"Upcoming appointment in {secondsUntil} seconds");
-					color = ColorHelper.ChangeBrightness(Color.Blue, -0.6F);
-                    //_blink1.SetColor(color.R, color.G, color.B);
+					
 
-                    if (secondsUntil < 0) 
+                    if (secondsUntil <= 0) 
 					{
 						// if meeting has just started, blink RED:
                         color = ColorHelper.ChangeBrightness(Color.Red, -0.6F);
@@ -125,9 +124,15 @@ namespace XRMStatus
 					{
                         color = ColorHelper.ChangeBrightness(Color.Blue, -0.3F);
                         //_blink1.Blink(30, 1000, 1000, color.R, color.G, color.B);
+                        _blink1.SetColor(color.R, color.G, color.B);
+					}
+                    else
+                    {
+	                    color = ColorHelper.ChangeBrightness(Color.Blue, -0.6F);
+	                    _blink1.SetColor(color.R, color.G, color.B);
                     }
 
-                    _blink1.SetColor(color.R, color.G, color.B);
+                    
 				}
             }
 			else
@@ -136,7 +141,7 @@ namespace XRMStatus
 			}
 
             // Don't update LED unless color has changed.
-            if (lastColor != color)
+            if (noMeetingsSoon && lastColor != color)
             {
                 Log($"Changing LED color to: {color.R},{color.G},{color.B}");
                 _blink1.SetColor(color.R, color.G, color.B);
