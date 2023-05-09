@@ -6,8 +6,13 @@ namespace XRMStatus
 {
 	public class StatusMonitorSettings
 	{
-		public string ApiKey { get; set; }
+		public string StatusCakeApiKey { get; set; }
 
 		public int CertificateExpirationDays { get; set; }
-	}
+
+		public bool EnableCalendarFunction { get; set;}
+
+		public string EmailAddress { get; set;}
+
+    }
 }

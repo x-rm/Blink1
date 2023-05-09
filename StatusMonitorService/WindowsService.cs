@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
@@ -16,6 +17,8 @@ namespace XRMStatus
 {
 	public partial class WindowsService : ServiceBase
 	{
+		private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
 		Timer _timer;
 		StatusMonitor _statusMonitor;
 
@@ -28,56 +31,46 @@ namespace XRMStatus
 		{
 			var settings = new StatusMonitorSettings
 			{
-				ApiKey = ConfigurationManager.AppSettings["ApiKey"].ToString(),
-				CertificateExpirationDays = Convert.ToInt32(ConfigurationManager.AppSettings["CertificateExpirationDays"])
-			};
+				StatusCakeApiKey = ConfigurationManager.AppSettings["StatusCakeApiKey"].ToString(),
+				CertificateExpirationDays = Convert.ToInt32(ConfigurationManager.AppSettings["CertificateExpirationDays"]),
+                EnableCalendarFunction = Convert.ToBoolean(ConfigurationManager.AppSettings["EnableCalendarFunction"]),
+				EmailAddress = ConfigurationManager.AppSettings["EmailAddress"]
+            };
 
-			Log($"START. ApiKey: {settings.ApiKey}");
+			_logger.Info($"START. StatusCakeApiKey: {settings.StatusCakeApiKey}");
 			
-			_statusMonitor = new StatusMonitor(settings);
+			try {
+				_statusMonitor = new StatusMonitor(settings, _logger);
 
-			_timer = new Timer(0.3 * 60 * 1000); // every 1 minute
-			_timer.Elapsed += new System.Timers.ElapsedEventHandler(timer_Elapsed);
-			_timer.Start(); // <- important
+				_timer = new Timer(0.3 * 60 * 1000); // every 1 minute
+				_timer.Elapsed += new System.Timers.ElapsedEventHandler(timer_Elapsed);
+				_timer.Start(); // <- important
 
-			timer_Elapsed(null, null);
+				timer_Elapsed(null, null);
+			} 
+			catch (Exception ex) {
+				_logger.Fatal(ex, "Fatal error starting app");
+			}
 		}
 
-		private void timer_Elapsed(object sender, ElapsedEventArgs e)
+		private async void timer_Elapsed(object sender, ElapsedEventArgs e)
 		{
 			try
 			{
-				_statusMonitor.RunChecks();
-				Log("OK");
+				await _statusMonitor.RunChecksAsync();
+				_logger.Info("OK");
 			}
 			catch (Exception ex)
 			{
-				Log(ex.ToString());
+				_logger.Fatal(ex.ToString());
 			}
 		}
 
 		protected override void OnStop()
 		{
 			//_statusMonitor.Close();
-			Log("STOP");
+			_logger.Info("STOP");
 		}
 
-		public void Log(string Message)
-		{
-			string path = AppDomain.CurrentDomain.BaseDirectory + "\\Logs";
-
-			if (!Directory.Exists(path))
-			{
-				Directory.CreateDirectory(path);
-			}
-
-			string filepath = AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\ServiceLog_" + DateTime.Now.Date.ToShortDateString().Replace('/', '_') + ".txt";
-
-			using (StreamWriter sw = File.AppendText(filepath))
-			{
-				sw.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "|" + Message);
-			}
-			
-		}
 	}
 }

@@ -24,6 +24,7 @@ namespace StatusMonitorService
 			{
 				new WindowsService()
 			};
+
 			ServiceBase.Run(ServicesToRun);
 		}
 	}

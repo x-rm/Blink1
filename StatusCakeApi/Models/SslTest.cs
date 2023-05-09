@@ -1,17 +1,17 @@
 ﻿using System;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace StatusCakeApi.Models
 {
 	public class SslTest
 	{
-		[JsonProperty("id")]
+		[JsonPropertyName("id")]
 		public int Id { get; set; }
 
-		[JsonProperty("website_url")]
+		[JsonPropertyName("website_url")]
 		public string WebsiteUrl { get; set; }
 		
-		[JsonProperty("valid_until")]
+		[JsonPropertyName("valid_until")]
 		public DateTimeOffset ValidUntil { get; set; }
 	}
 }

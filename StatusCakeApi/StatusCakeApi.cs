@@ -1,12 +1,10 @@
 ﻿using RestSharp;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using RestSharp.Authenticators;
-using RestSharp.Serializers.NewtonsoftJson;
 using StatusCakeApi.Models;
+using NLog;
+
 
 namespace StatusCakeApi
 {
@@ -14,43 +12,51 @@ namespace StatusCakeApi
     public class StatusCakeApiClient	
     {
 		const string BaseUrl = "https://api.statuscake.com/v1/";
-		readonly IRestClient client;
+		readonly RestClient client;
+		readonly Logger _logger;
 
-		public StatusCakeApiClient(string apiKey)
+		public StatusCakeApiClient(string apiKey, Logger logger)
 		{
-			client = new RestClient(BaseUrl);
-			client.Authenticator = new JwtAuthenticator(apiKey);
-			client.UseNewtonsoftJson();
-		}
-
-		public UptimeResults GetFailedTests()
-		{
-			var request = new RestRequest("uptime");
-			request.AddParameter("limit", 100, ParameterType.QueryString);
-			request.AddParameter("status", "down", ParameterType.QueryString);
-			var tests = client.Get<UptimeResults>(request);
-			return tests.Data;
-		}
-
-		public SslTestResults GetSSLTests()
-		{
-			var request = new RestRequest("ssl");
-			var tests = client.Get<SslTestResults>(request);
-			return tests.Data;
-		}
-		
-		public T Execute<T>(RestRequest request) where T : new()
-		{	
-			var response = client.Execute<T>(request);
-
-			if (response.ErrorException != null)
+			var options = new RestClientOptions(BaseUrl)
 			{
-				const string message = "Error retrieving response.  Check inner details for more info.";
-				var exception = new ApplicationException(message, response.ErrorException);
-				throw exception;
+				Authenticator = new JwtAuthenticator(apiKey)
+			};
+
+			client = new RestClient(options);
+			
+			_logger = logger;
+		}
+
+		public async Task<UptimeResults> GetFailedTestsAsync()
+		{
+			var request = new RestRequest("uptime", Method.Get);
+			request.AddParameter("limit", 100, ParameterType.QueryString);
+			request.AddParameter("status", "down", ParameterType.QueryString); // Only failed tests
+			var response = await client.ExecuteAsync<UptimeResults>(request);
+
+			if (!response.IsSuccessful)
+			{
+				var error = $"Exception occurred fetching failed tests from StatusCake: IsSuccessful: {response.IsSuccessful} StatusCode: {response.StatusCode} Response: {response.Content}";
+				_logger.Fatal(error);
+				throw new ApplicationException(error);
 			}
+
 			return response.Data;
 		}
 
+		public async Task<SslTestResults> GetSSLTestsAsync()
+		{
+			var request = new RestRequest("ssl");
+			var result = await client.ExecuteAsync<SslTestResults>(request);
+
+			if (!result.IsSuccessful)
+			{
+				var error = "Error fetching SSL test results: StatusCode: {result.StatusCode} Response: {result.Content}";
+				_logger.Fatal(error);
+				throw new ApplicationException(error);
+			}
+
+			return result.Data;
+		}
     }
 }

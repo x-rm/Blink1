@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.Logging;
 using StatusCakeApi;
 using StatusCakeApi.Models;
+using NLog;
 
 namespace LedStatusFunction
 {
@@ -13,16 +13,16 @@ namespace LedStatusFunction
     {
 	    public static int cachedCount = -1;
 	    public static DateTime lastFetch = DateTime.MinValue;
-	    public static ILogger logger;
+	    public static Logger logger = LogManager.GetCurrentClassLogger();
 
 	    [Function("HttpListener")]
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req, FunctionContext executionContext)
         {
-	        logger = executionContext.GetLogger("HttpListener");
+	        //logger = executionContext.GetLogger("HttpListener");
 
 	        if (lastFetch > DateTime.Now.AddSeconds(-30) && cachedCount != -1)
 	        {
-				logger.Log(LogLevel.Information, "Returning cached value from " + lastFetch.ToString("s"));
+				logger.Info("Returning cached value from " + lastFetch.ToString("s"));
 				var secondsAgo = (int)(DateTime.Now - lastFetch).TotalSeconds;
 				var response = GetResponseData(req, cachedCount, $"cached {secondsAgo} seconds ago");
 				return response;
@@ -30,7 +30,7 @@ namespace LedStatusFunction
 
 	        try
 	        {
-		        logger.LogInformation("Returning non-cached value");
+		        logger.Info("Returning non-cached value");
 
 		        var apiKey = Environment.GetEnvironmentVariable("StatusCakeApiKey");
 
@@ -42,9 +42,9 @@ namespace LedStatusFunction
 			        return badResponse;
 		        }
 
-		        StatusCakeApiClient _api = new StatusCakeApiClient(apiKey);
+		        StatusCakeApiClient _api = new StatusCakeApiClient(apiKey, logger);
 
-		        var failedTests = _api.GetFailedTests();
+		        var failedTests = _api.GetFailedTestsAsync().Result;
 		        cachedCount = failedTests.Data.Count;
 		        lastFetch = DateTime.Now;
 
@@ -53,7 +53,7 @@ namespace LedStatusFunction
 	        }
 	        catch (Exception ex)
 	        {
-				logger.Log(LogLevel.Critical, "Exception: " + ex.ToString());
+				logger.Fatal(ex, "Exception: " + ex.ToString());
 				throw;
 	        }
 	        

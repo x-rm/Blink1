@@ -1,36 +1,36 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace StatusCakeApi.Models
 {
 	public class UptimeTestResult
 	{
-		[JsonProperty("id")]
+		[JsonPropertyName("id")]
 		public int Id { get; set; }
 
-		[JsonProperty("paused")]
+		[JsonPropertyName("paused")]
 		public bool Paused { get; set; }
 
-		[JsonProperty("name")]
+		[JsonPropertyName("name")]
 		public string Name { get; set; }
 
-		[JsonProperty("website_url")]
+		[JsonPropertyName("website_url")]
 		public string WebsiteUrl { get; set; }
 
-		[JsonProperty("test_type")]
+		[JsonPropertyName("test_type")]
 		public string TestType { get; set; }
 
-		[JsonProperty("check_rate")]
+		[JsonPropertyName("check_rate")]
 		public long CheckRate { get; set; }
 
 		
-		[JsonProperty("status")]
+		[JsonPropertyName("status")]
 		public string Status { get; set; }
 
-		[JsonProperty("tags")]
+		[JsonPropertyName("tags")]
 		public List<string> Tags { get; set; }
 
-		[JsonProperty("uptime")]
+		[JsonPropertyName("uptime")]
 		public double Uptime { get; set; }
 	}
 }

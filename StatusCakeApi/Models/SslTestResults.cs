@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace StatusCakeApi.Models
 {
 	public class SslTestResults
 	{
-		[JsonProperty("data")]
+		[JsonPropertyName("data")]
 		public List<SslTest> Data { get; set; }
 
-		[JsonProperty("metadata")]
+		[JsonPropertyName("metadata")]
 		public Metadata Metadata { get; set; }
 	}
 }

@@ -2,7 +2,7 @@ X-RM Blink1 Service
 =============
 
 This controls a Blink1 LED plugged into USB, based on the output of a connected StatusCake account.
-Configure username and API key in App.config before installing the Windows Service.
+Configure API key in App.config before installing the Windows Service.
 
 ## Installation
 

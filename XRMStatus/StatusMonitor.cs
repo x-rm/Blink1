@@ -1,11 +1,11 @@
 ﻿using StatusCakeApi;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Threading;
+using System.Threading.Tasks;
 using StatusCakeApi.Models;
 using ThingM.Blink1;
+using System.Linq;
+using NLog;
 
 namespace XRMStatus
 {
@@ -14,13 +14,17 @@ namespace XRMStatus
 		private Blink1 _blink1;
 		private readonly StatusCakeApiClient _api;
 		private readonly StatusMonitorSettings _settings;
+		private readonly Logger _logger;
+
+
 		const int MAX_BRIGHTNESS = 200;
 		private Color lastColor;
 
-		public StatusMonitor(StatusMonitorSettings settings)
+		public StatusMonitor(StatusMonitorSettings settings, Logger logger)
 		{
 			_settings = settings;
-			_api = new StatusCakeApiClient(settings.ApiKey);
+			_api = new StatusCakeApiClient(settings.StatusCakeApiKey, logger);
+			_logger = logger;
 		}
 
 		//public void StartupLights()
@@ -41,13 +45,13 @@ namespace XRMStatus
 		//}
 
 
-		public void RunChecks()
+		public async Task RunChecksAsync()
 		{
 			_blink1 = new Blink1();
 			_blink1.Open();
 			Color color = new Color();
 				
-			int numberOfFailedTests = CheckAllStatusCakeTestsOK();
+			int numberOfFailedTests = await CheckAllStatusCakeTestsOKAsync();
 
 			if (numberOfFailedTests == 0)
 			{
@@ -58,7 +62,7 @@ namespace XRMStatus
 				// If there are no error conditions, then check SSL expirations:
 				try
 				{
-					var numberOfSslFails = CheckSSLExpirations(_settings.CertificateExpirationDays);
+					var numberOfSslFails = await CheckSSLExpirationsAsync(_settings.CertificateExpirationDays);
 
 					Log("SSL fails: " + numberOfSslFails);
 					if (numberOfSslFails > 0)
@@ -68,6 +72,7 @@ namespace XRMStatus
 				}
 				catch (Exception ex)
 				{
+					Log("Error: " + ex.ToString());
 					color = ColorHelper.ChangeBrightness(Color.BlueViolet, -0.9F);
 				}
 			}
@@ -82,14 +87,62 @@ namespace XRMStatus
 				color = Color.FromArgb(brightness, 0, 0);
 			}
 
-			// Don't update LED unless color has changed.
-			if (lastColor != color)
+			bool noMeetingsSoon = true;
+
+
+
+			if (_settings.EnableCalendarFunction) 
 			{
-				Log($"Changing LED color to: {color.R},{color.G},{color.B}");
-				_blink1.SetColor(color.R, color.G, color.B);
+				Log("Calendar function enabled");
+				var calendar = new CalendarService("https://mail.x-rm.com/WorldClient.dll");
+				var appointments = await calendar.GetAppointmentsAsync("nick@x-rm.com");
+                var upcoming = appointments.Where(t => t.StartDateTime >= DateTime.UtcNow.AddMinutes(-2) && t.StartDateTime <= DateTime.UtcNow.AddMinutes(5)).ToList();
+
+				if (upcoming.Count > 0) 
+				{
+                    noMeetingsSoon = false;
+
+                    double secondsUntil = SecondsUntil(upcoming.First().StartDateTime);
+
+                    Log($"Upcoming appointment in {secondsUntil} seconds");
+					color = ColorHelper.ChangeBrightness(Color.Blue, -0.6F);
+                    //_blink1.SetColor(color.R, color.G, color.B);
+
+                    if (secondsUntil < 0) 
+					{
+						// if meeting has just started, blink RED:
+                        color = ColorHelper.ChangeBrightness(Color.Red, -0.6F);
+                        _blink1.Blink(31, 300, 300, color.R, color.G, color.B);
+                    } 
+					else if (secondsUntil <= 60) 
+					{
+                        // if meeting starts in less than 1 min, blink BLUE:
+                        color = ColorHelper.ChangeBrightness(Color.Blue, -0.6F);
+                        _blink1.Blink(31, 300, 300, color.R, color.G, color.B);
+                        
+					} 
+					else if (secondsUntil <= 120) 
+					{
+                        color = ColorHelper.ChangeBrightness(Color.Blue, -0.3F);
+                        //_blink1.Blink(30, 1000, 1000, color.R, color.G, color.B);
+                    }
+
+                    _blink1.SetColor(color.R, color.G, color.B);
+				}
+            }
+			else
+			{
+				Log("Calendar function disabled");
 			}
 
-			_blink1.Close(false);
+            // Don't update LED unless color has changed.
+            if (lastColor != color)
+            {
+                Log($"Changing LED color to: {color.R},{color.G},{color.B}");
+                _blink1.SetColor(color.R, color.G, color.B);
+            }  
+
+            _blink1.Close(false);
 			_blink1 = null;
 		}
 
@@ -98,10 +151,14 @@ namespace XRMStatus
 			_blink1.Close();
 		}
 
-
-		private int CheckSSLExpirations(int days)
+		private double SecondsUntil(DateTime start )
 		{
-			var results = _api.GetSSLTests();
+			return (start - DateTime.UtcNow).TotalSeconds;
+		}
+
+		private async Task<int> CheckSSLExpirationsAsync(int days)
+		{
+			var results = await _api.GetSSLTestsAsync();
 
 			if (results.Data.Count == 0) throw new ApplicationException("No SSL results were returned");
 
@@ -115,31 +172,16 @@ namespace XRMStatus
 			return numberOfFailedTests;
 		}
 		
-		private int CheckAllStatusCakeTestsOK()
+		private async Task<int> CheckAllStatusCakeTestsOKAsync()
 		{
-			UptimeResults failedTests = _api.GetFailedTests();
+			UptimeResults failedTests = await _api.GetFailedTestsAsync();
 			 
 			return failedTests.Data.Count;
 		}
 		
 		public void Log(string message)
 		{
-			Console.WriteLine(message);
-			
-			string path = AppDomain.CurrentDomain.BaseDirectory + "\\Logs";
-
-			if (!Directory.Exists(path))
-			{
-				Directory.CreateDirectory(path);
-			}
-
-			string filepath = AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\ServiceLog_" + DateTime.Now.Date.ToString("yyyy-MM-dd") + ".txt";
-
-			using (StreamWriter sw = File.AppendText(filepath))
-			{
-				sw.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "|" + message);
-			}
-			
+			_logger.Info(message);
 		}
 	}
 }
